@@ -4,7 +4,7 @@ module.exports = {
 	get: function() {
 		return new SimpleEngine({
 			name: 'tosarang',
-			host: 'tosarang.net',
+			host: 'www.tosarang.net',
 			typelist: {
 				'torrent_movie_kor': '한국영화',
 				'torrent_movie_eng': '외국영화',

@@ -10,10 +10,12 @@ var transmission = new Transmission({
 	username: 'transmission',
 	password: 'transmission',
 });
+transmission.methods.torrents.fields = ['hashString','name','status','percentDone','startDate','downloadDir'];
 
 // 정리
 setInterval(function() {
 	var transmission = app.get('transmission');
+	//console.log(transmission.methods.torrents.fields);
 	transmission.get(function(err, result) {
 		if (!err) {
 			result.torrents.forEach(function(torrent) {

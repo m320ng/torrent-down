@@ -26,11 +26,10 @@ function verify_engines(callback) {
 		});
 	});
 
-	engines.sort(function(a, b) {
-		return a.ping - b.ping;
-	});
-
 	async.parallel(tasks, function(err) {
+		engines.sort(function(a, b) {
+			return a.ping - b.ping;
+		});
 		if (callback) callback(err);
 	});
 }
