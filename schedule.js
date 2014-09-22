@@ -2,7 +2,7 @@ module.exports = [{
 	type: '매주',
 	week: 5,
 	hour: 2,
-	minute: 0,
+	minute: 1,
 	title: '쇼미더머니',
 	target: {
 		type: '한국예능',

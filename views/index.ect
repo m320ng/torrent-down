@@ -1,0 +1,73 @@
+<% extend 'layout' %>
+
+<% weekname=['일', '월', '화', '수', '목', '금', '토'] %>
+
+<div class="btn-group btn-group-sm" style="padding:10px 0;">
+  <% for item in @engines : %>
+    <% if item.enable : %>
+    <a class="btn btn-sm <%- if item.name==@engine.name then "btn-primary" else "btn-default" %>" href="/?engine=<%=item.name%>">
+      <span class="glyphicon glyphicon-log-in"></span>
+      <%- item.name %>
+      <span class="badge"><%-item.ping%></span>
+    </a>
+    <% else : %>
+    <a class="btn btn-sm" style="background:#eee;" href="#">
+      <span class="glyphicon glyphicon-ban-circle"></span>
+      <%- item.name%>
+      <span class="badge">off</span>
+    </a>
+    <% end %>
+  <% end %>
+</div>
+<form role="form" action="/search" method="get">
+  <div class="form-group">
+    <label>카테고리</label>
+    <select name="type" class="form-control">
+    <% for key, val of @engine.typelist : %>
+      <option value="<%- key%>"><%= val%></option>
+    <% end %>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>검색어</label>
+    <input type="input" class="form-control" name="keyword" value=""/>
+  </div>
+  <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"></span> 검색</button>
+</form>
+<p>
+  <div class="btn-group btn-group-justified">
+    <a href="\\192.168.0.11\share\download" class="btn btn-warning"><span class="glyphicon glyphicon-folder-open"></span> 다운로드 폴더열기</a>
+    <a href="/verify" class="btn btn-info"><span class="glyphicon glyphicon-time"></span> 접속정보갱신</a>
+    <a href="/torrent" class="btn btn-success"><span class="glyphicon glyphicon-download"></span> Torrent현황</a>
+  </div>
+
+  <div class="panel panel-info">
+    <div class="panel-heading">예약다운로드 <span class="badge"><%- @schedules.length%></span></div>
+      
+    <div class="panel-body">
+      자동으로 다운받는 항목들입니다.
+    </div>
+      <table class="table">
+        <tr style="background:#f4f4f4;">
+          <th>#</th>
+          <th>예약항목</th>
+          <th>예약시간</th>
+        </tr>
+        <% for item, index in @schedules : %>
+        <tr>
+          <td><%- @schedules.length-index%></td>
+          <td><strong><%- item.title%></strong></td>
+          <td>
+            <span class="label label-success">
+              <span class="glyphicon glyphicon-time"></span>
+              <%- item.type%>
+              <%- weekname[item.week]+'요일 '%>
+              <%- item.hour+'시 '+item.minute+'분'%>
+            </span>
+          </td>
+        </tr>
+        <% end %>
+      </table>
+  </div>
+</p>
+<% end %>

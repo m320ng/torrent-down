@@ -1,0 +1,23 @@
+<% extend 'layout' %>
+  
+<% if @alertmsg : %>
+  <p class="alert alert-danger"><%- @alertmsg%></p>
+<% end %>
+
+<% for item in @results : %>
+  <% if item.ext=='.torrent' : %>
+  <p class="alert alert-success">
+    <span class="glyphicon glyphicon-ok"></span>
+    <a href="#" class="alert-link"> TORRENT</a>
+    <strong><%- item.file%></strong> (Downloading..)
+  </p>
+  <% else : %>
+  <p class="alert alert-success">
+    <span class="glyphicon glyphicon-ok"></span>
+    <a href="#" class="alert-link"> 다운로드</a>
+    <strong><%- item.file%></strong> (Downloading..)
+  </p>
+  <% end %>
+<% end %>
+
+<a href="/" class="btn btn-default"><span class="glyphicon glyphicon-home"></span> 처음으로</a>

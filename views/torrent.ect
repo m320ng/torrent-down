@@ -1,0 +1,75 @@
+<% extend 'layout' %>
+
+<% statusname = 
+  '6': 'Seeding'
+  '4': 'Downloading'
+  '3': 'Queued'
+  '0': 'Paused'
+%> 
+<% classcolor = (x) -> 
+    if x==6 
+        'warning'
+    else if x==4
+        'info'
+    else 
+        'default'
+%>
+<% sizeformat = (b) -> 
+    if 1024 * 1024 * 1024 < b
+        (b / (1024 * 1024 * 1024)).toFixed(2) + 'G'
+    else if 1024 * 1024 < b
+        (b / (1024 * 1024)).toFixed(2) + 'MB'
+    else if 1024 < b
+        parseInt(b / 1024) + 'KB'
+    else
+        b
+%>
+<div class="panel panel-info">
+  <div class="panel-heading">torrents <span class="badge"><%- @torrents.length%></span></div>
+  <div class="panel-body">
+    <!--summary-->
+    <span class="label label-default">Pause <%- @summary.pauseCount%></span>
+    <span class="label label-primary">Downloading <%- @summary.downloadCount%></span>
+    <!--<span class="label label-success">Success</span>-->
+    <span class="label label-info">Queue <%- @summary.queueCount%></span>
+    <span class="label label-warning">Seeding <%- @summary.seedingCount%></span>
+    <!--<span class="label label-danger">Danger</span>-->
+  </div>
+  <div class="table-responsive">
+    <!--torrentResult-->
+    <table class="table table-striped">
+      <thead>
+      <tr class="background:#f4f4f4;">
+        <th>#</th>
+        <th>Status</th>
+        <th>Name</th>
+        <th>%</th>
+        <th>Size</th>
+        <th>StartDate</th>
+        <th>Del</th>
+      </tr>
+      </thead>
+      <tbody>
+      <% for torrent in @torrents : %>
+      <tr>
+        <td class=""><small><%- torrent.id%></small></td>
+        <td><span class="label label-xs label-<%- classcolor(torrent.status)%>"><%- statusname[torrent.status]%></span></td>
+        <td><%- torrent.name%>
+        <a href="/torrent-file?file=<%- torrent.torrentFile%>" class="btn btn-success btn-xs">.torrent</a>
+        </td>
+        <td class="text-info"><small><%- (torrent.percentDone * 100).toFixed(2)%>%</small></td>
+        <td class="text-success"><small><%- sizeformat(torrent.totalSize)%></small></td>
+        <td class="text-info"><small><%- (new Date(torrent.startDate * 1000)).toISOString().replace(/T/,' ').replace(/\..+/,'')%></small></td>
+        <td>
+        <a href="/torrent-del?id=<%- torrent.hashString%>&delete=true" class="btn btn-danger btn-xs">del-file</a>
+        <a href="/torrent-del?id=<%- torrent.hashString%>" class="btn btn-warning btn-xs">del</a>
+        </td>
+      </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<a href="/torrent-pause-clear" class="btn btn-danger"><span class="glyphicon glyphicon-fire"></span> Pause 모두삭제</a>
+<a href="/" class="btn btn-default"><span class="glyphicon glyphicon-home"></span> 처음으로</a>

@@ -1,0 +1,44 @@
+extends layout
+
+block content
+  script.
+    function next(page) {
+      var form = document.forms['search-form'];
+      form["page"].value = page;
+      form.submit();
+    }
+
+  form(name="search-form")
+    input(type="hidden" name="type" value!=type)
+    input(type="hidden" name="page" value!=page)
+    input(type="hidden" name="keyword" value!=keyword)
+
+  div(class="panel panel-info" style="overflow:hidden;")
+    div(class="panel-heading") 검색결과 
+      span(class="badge")!=result.length
+    div(class="table-responsive")
+      table(class="table table-striped")
+        if result && result.length
+          each item in result
+            tr
+              td
+                a(href='/download?value='+encodeURIComponent(item.value)+'&title='+encodeURIComponent(item.title))!=item.title
+                a(href=item.info class="badge" target="_blank" style="background:#5cb85c;") INFO
+              td
+                a(href='/download?value='+encodeURIComponent(item.value)+'&title='+encodeURIComponent(item.title) class="btn btn-primary btn-xs" style="float:right;")
+                  span(class="glyphicon glyphicon-download")
+                  |  Download
+        else
+          tr
+            td 결과없음
+
+  a(href="/" class="btn btn-default")
+    span(class="glyphicon glyphicon-home")
+    | 처음으로
+  a(href="javascript:next('#{page+1}');" class="btn btn-default")
+    span(class="glyphicon glyphicon-chevron-right")
+    | 다음페이지
+  a(href="javascript:history.back();" class="btn btn-default")
+    span(class="glyphicon glyphicon-eject")
+    | 뒤로가기
+

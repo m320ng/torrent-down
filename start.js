@@ -151,6 +151,8 @@ function downloadProcess(target) {
 }
 
 function scheduleProcess() {
+	schedules = require('./schedule');
+
 	var now = new Date();
 	schedules.forEach(function(item, index) {
 		if (item.type=='매주' && item.week==now.getDay()) {
