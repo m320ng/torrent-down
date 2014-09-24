@@ -1,12 +1,12 @@
 module.exports = [{
 	type: '매주',
-	week: 5,
-	hour: 2,
-	minute: 1,
-	title: '쇼미더머니',
+	week: 6,
+	hour: 0,
+	minute: 0,
+	title: '금요일은수다다',
 	target: {
 		type: '한국예능',
-		keyword: '쇼미더',
+		keyword: '금요일은수다',
 		relname: 'WITH',
 	}
 }, {

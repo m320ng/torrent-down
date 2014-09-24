@@ -12,8 +12,8 @@ var schedules = global.schedules;
 /* torrent
  ------------------------------------------------------------------------------------ */
 var transmission = new Transmission({
+    host: 'localhost',
     port: 9091,
-    host: '192.168.0.11',
 	username: 'transmission',
 	password: 'transmission',
 });
@@ -27,6 +27,17 @@ function _engine(name) {
 	});
 	return current;
 }
+
+function getExtension(filename) {
+    var ext = path.extname(filename||'').split('.');
+    return ext[ext.length - 1];
+}
+
+function getParentPath(path) {
+	return fs.realpathSync(path + '/..');
+}
+
+var downloadPath = "/data/download";
 
 router.use('/verify', function (req, res, next) {
 	global.verify_engines(function(err) {
@@ -59,6 +70,133 @@ router.get('/search', function(req, res, next) {
 	}
 });
 
+
+router.use('/arrange', function(req, res, next) {
+	var smiExtensions = ['smi'];
+	var movieExtensions = ['avi', 'mkv', 'mp4', 'mpeg', 'mpg', 'mpe', 'wmv', 'asf', 'asx', 'flv', 'rm', 'mov', 'dat'];
+	var spath = !!req.body.path ? req.body.path : downloadPath;
+	var mode = !!req.body.mode ? req.body.mode : 'smi';
+	var smipath = !!req.body.smipath ? req.body.smipath : '';
+	var newname = !!req.body.newname ? req.body.newname : '';
+	var movepos = !!req.body.movepos ? req.body.movepos : '';
+
+	if(mode == 'match') {
+
+		res.render('arrange-input', {
+			path: spath,
+			smipath: smipath,
+			newname: path.basename(spath, path.extname(spath))
+		});
+	} else if(mode == 'process') {
+
+		if(!newname) {
+			res.render('arrange-success', {
+				error: '동영상 이름이 입력되지 않았습니다.'
+			});
+		} else if(!movepos || (movepos != 'movie' && movepos != 'smi') ) {
+			res.render('arrange-success', {
+				error: '이동위치가 선택되지 않았습니다.'
+			});
+		} else if(!spath) {
+			res.render('arrange-success', {
+				error: '동영상이 선택되지 않았습니다.'
+			});
+		} else if(!smipath) {
+			res.render('arrange-success', {
+				error: '자막이 선택되지 않았습니다.'
+			});
+		} else {
+
+			if(!fs.existsSync(spath) || !fs.existsSync(smipath)) {
+				res.render('arrange-success', {
+					error: '파일이 존재하지 않습니다.'
+				});
+				return;
+			}
+
+			var movieExtension = getExtension(spath);
+			var smiExtension = getExtension(smipath);
+			var movePath = '';
+
+			if(movepos == 'movie') {
+				movePath = path.dirname(spath);
+			} else {
+				movePath = path.dirname(smipath);
+			}
+
+			var movieFile = movePath + '/' + newname + path.extname(spath);
+			var smiFile = movePath + '/' + newname + path.extname(smipath);
+
+			fs.renameSync(spath, movieFile);
+			fs.renameSync(smipath, smiFile);
+
+			res.render('arrange-success', {
+				originalMovie: spath,
+				originalSmi: smipath,
+				newMovie: movieFile,
+				newSmi: smiFile,
+				error: ''
+			});
+		}
+
+	} else {
+		fs.readdir(spath, function(err, files) {
+			var dirList = [];
+			var fileList = [];
+
+			console.log('# file count : ' + files.length);
+			for(var i=0; i<files.length; i++) {
+				var file = files[i];
+				var fullpath = spath + '/' + files[i];
+				var stat = fs.statSync(fullpath);
+				if(!stat.isFile() && !stat.isDirectory()) continue;
+
+				var f = {
+					isDirectory: stat.isDirectory(),
+					extension: getExtension(files[i]).toLowerCase(),
+					file: file,
+					path: fullpath,
+					mode: mode
+				};
+				if(mode == 'smi') {
+					if(!f.isDirectory && smiExtensions.indexOf(f.extension) == -1) continue;
+				} else if(mode == 'movie') {
+					if(!f.isDirectory && movieExtensions.indexOf(f.extension) == -1) continue;
+				}
+
+				console.log('# ' + file);
+
+				if(f.isDirectory) dirList[dirList.length] = f;
+				else fileList[fileList.length] = f;
+			}
+
+			var list = dirList.concat(fileList);
+			if(spath != downloadPath) {
+				list.unshift({
+					isDirectory: true,
+					extension: '',
+					file: '..',
+					path: getParentPath(spath),
+					mode: mode
+				});
+				list.unshift({
+					isDirectory: true,
+					extension: '',
+					file: '/',
+					path: downloadPath,
+					mode: mode
+				});
+			}
+			
+			res.render('arrange', {
+				files: list,
+				mode: mode,
+				smipath: smipath,
+				currentpath: spath
+			});
+		});
+	}
+});
 
 router.use('/download', function (req, res, next) {
 	var engine = _engine(req.session['engine']);

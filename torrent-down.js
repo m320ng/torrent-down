@@ -146,6 +146,10 @@ app.use(expressSession({
 	saveUninitialized: true,
 	resave:true,
 }));
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
 
 var routes = require('./routes/index');
 

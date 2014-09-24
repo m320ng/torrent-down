@@ -1,0 +1,30 @@
+<% extend 'layout' %>
+<style type="text/css">
+table th.movie {
+  background-color: rgb(217, 237, 247) !important;
+}
+table th.smi {
+	background-color:#fff7e6 !important;
+}
+input {
+  border: 1px solid #999999;
+}
+input.text {
+  width: 100%;
+  height: 30px;
+  font-size: 9pt;
+}
+</style>
+<div class="panel panel-info">
+    <div class="panel-heading">처리완료</div>
+    <div class="panel-body">
+      <% if @error == "" : %>
+        처리되었습니다.
+      <% else : %>
+        <%- @error %>
+      <% end %>
+    </div>
+</div>
+
+<a href="/arrange" class="btn btn-default"><span class="glyphicon glyphicon-home"></span> 다른파일정리</a>
+<a href="/" class="btn btn-default"><span class="glyphicon glyphicon-home"></span> 처음으로</a>
