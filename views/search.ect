@@ -9,6 +9,7 @@ function next(page) {
 </script>
 
 <form name="search-form">
+  <input type="hidden" name="engine" value="<%- @engine.name%>"/>
   <input type="hidden" name="type" value="<%- @type%>"/>
   <input type="hidden" name="page" value="<%- @page%>"/>
   <input type="hidden" name="keyword" value="<%- @keyword%>"/>
@@ -25,11 +26,11 @@ function next(page) {
       <% for item in @result : %>
       <tr>
         <td>
-          <a href="/download?value=<%= encodeURIComponent(item.value)%>&title=<%= encodeURIComponent(item.title)%>"><%= item.title%></a>
+          <a href="/download?engine=<%= @engine.name%>&value=<%= encodeURIComponent(item.link)%>&title=<%= encodeURIComponent(item.title)%>"><%= item.title%></a>
           <a href="<%- item.info%>" class="badge" target="_blank" style="background:#5cb85c;">INFO</a>
         </td>
         <td>
-          <a href="/download?value=<%= encodeURIComponent(item.value)%>&title=<%= encodeURIComponent(item.title)%>" class="btn btn-primary btn-xs" style="float:right;"><span class="glyphicon glyphicon-download"></span> Download</a>
+          <a href="/download?engine=<%= @engine%>&value=<%= encodeURIComponent(item.link)%>&title=<%= encodeURIComponent(item.title)%>" class="btn btn-primary btn-xs" style="float:right;"><span class="glyphicon glyphicon-download"></span> Download</a>
         </td>
       <% end %>
     <% else : %>

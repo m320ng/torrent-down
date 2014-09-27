@@ -46,7 +46,7 @@ router.use('/verify', function (req, res, next) {
 });
 
 router.get('/search', function(req, res, next) {
-	var engine = _engine(req.session['engine']);
+	var engine = _engine(req.query['engine']||req.session['engine']);
 	var type = req.query['type'];
 	var keyword = req.query['keyword'];
 	var page = req.query['page'];
@@ -54,6 +54,10 @@ router.get('/search', function(req, res, next) {
 	page = parseInt(page);
 
 	var locals = {
+		engine: {
+			name: engine.name,
+			host: engine.host,
+		},
 		result: [],
 		page: page,
 		type: type,
@@ -199,38 +203,48 @@ router.use('/arrange', function(req, res, next) {
 });
 
 router.use('/download', function (req, res, next) {
-	var engine = _engine(req.session['engine']);
+	var engine = _engine(req.query['engine']||req.session['engine']);
 	var value = req.query['value'];
 	var title = req.query['title'];
 	console.log(value);
 	console.log(title);
 
 	var locals = {
+		engine: {
+			name: engine.name,
+			host: engine.host,
+		},
 		alertmsg: '',
 		results: [],
 	};
 
 	if (value) {
-		engine.download(value, title, function(err, files) {
+		engine.download(value, title, function(err, ret) {
 			console.log('complete');
-			console.log(err);
 
 			if (err) {
-				locals.alertmsg = util.inspect(err);
+				locals.alertmsg = ret;
 			}
 
-			files.forEach(function(file) {
-				var item = {
-					file: file,
-					ext: path.extname(file).toLowerCase()
-				};
-				if (item.ext=='.torrent') {
-					fs.rename(item.file, '/data/torrent/' + item.file);
-				} else {
-					fs.rename(item.file, '/data/download/' + item.file);
-				}
-				locals.results.push(item);
-			});
+			if (ret.meesage) {
+				locals.alertmsg += ret.meesage;
+			}
+			
+			if (ret.files) {
+				ret.files.forEach(function(file) {
+					var item = {
+						file: file.file,
+						name: file.name,
+						ext: path.extname(file.name).toLowerCase()
+					};
+					if (item.ext=='.torrent') {
+						fs.rename(item.file, '/data/torrent/' + item.name);
+					} else {
+						fs.rename(item.file, '/data/download/' + item.name);
+					}
+					locals.results.push(item);
+				});
+			}
 
 			res.render('download', locals);
 		});
