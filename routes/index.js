@@ -3,30 +3,7 @@ var fs = require('fs');
 var path = require('path')
 var async = require('async')
 var express = require('express');
-var Transmission = require('transmission');
 var router = express.Router();
-
-var engines = global.engines;
-var schedules = global.schedules;
-
-/* torrent
- ------------------------------------------------------------------------------------ */
-var transmission = new Transmission({
-    host: 'localhost',
-    port: 9091,
-	username: 'transmission',
-	password: 'transmission',
-});
-
-function _engine(name) {
-	var current = engines[0];
-	engines.forEach(function(item) {
-		if (item.name==name) {			
-			current = item;
-		}
-	});
-	return current;
-}
 
 function getExtension(filename) {
     var ext = path.extname(filename||'').split('.');
@@ -37,16 +14,16 @@ function getParentPath(path) {
 	return fs.realpathSync(path + '/..');
 }
 
-var downloadPath = "/data/download";
-
 router.use('/verify', function (req, res, next) {
-	global.verify_engines(function(err) {
+	var loader = app.get('engine_loader');
+	loader.verify_engines(function(err) {
 		res.redirect('/');
 	});
 });
 
 router.get('/search', function(req, res, next) {
-	var engine = _engine(req.query['engine']||req.session['engine']);
+	var loader = app.get('engine_loader');
+	var engine = loader.get(req.query['engine']||req.session['engine']);
 	var type = req.query['type'];
 	var keyword = req.query['keyword'];
 	var page = req.query['page'];
@@ -78,7 +55,7 @@ router.get('/search', function(req, res, next) {
 router.use('/arrange', function(req, res, next) {
 	var smiExtensions = ['smi'];
 	var movieExtensions = ['avi', 'mkv', 'mp4', 'mpeg', 'mpg', 'mpe', 'wmv', 'asf', 'asx', 'flv', 'rm', 'mov', 'dat'];
-	var spath = !!req.body.path ? req.body.path : downloadPath;
+	var spath = !!req.body.path ? req.body.path : global.download_path;
 	var mode = !!req.body.mode ? req.body.mode : 'smi';
 	var smipath = !!req.body.smipath ? req.body.smipath : '';
 	var newname = !!req.body.newname ? req.body.newname : '';
@@ -175,7 +152,7 @@ router.use('/arrange', function(req, res, next) {
 			}
 
 			var list = dirList.concat(fileList);
-			if(spath != downloadPath) {
+			if(spath != global.download_path) {
 				list.unshift({
 					isDirectory: true,
 					extension: '',
@@ -187,7 +164,7 @@ router.use('/arrange', function(req, res, next) {
 					isDirectory: true,
 					extension: '',
 					file: '/',
-					path: downloadPath,
+					path: global.download_path,
 					mode: mode
 				});
 			}
@@ -203,11 +180,14 @@ router.use('/arrange', function(req, res, next) {
 });
 
 router.use('/download', function (req, res, next) {
-	var engine = _engine(req.query['engine']||req.session['engine']);
+	var transmission = app.get('transmission');
+	var loader = app.get('engine_loader');
+
+	var engine = loader.get(req.query['engine']||req.session['engine']);
 	var value = req.query['value'];
 	var title = req.query['title'];
-	console.log(value);
-	console.log(title);
+	//console.log(value);
+	//console.log(title);
 
 	var locals = {
 		engine: {
@@ -220,7 +200,7 @@ router.use('/download', function (req, res, next) {
 
 	if (value) {
 		engine.download(value, title, function(err, ret) {
-			console.log('complete');
+			//console.log('complete');
 
 			if (err) {
 				locals.alertmsg = ret;
@@ -231,6 +211,15 @@ router.use('/download', function (req, res, next) {
 			}
 			
 			if (ret.files) {
+				var downdir = global.download_path+'/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
+				//console.log(downdir);
+				try {
+					fs.mkdirSync(downdir, 0777);
+					fs.chmodSync(downdir, 0777);
+				} catch(e) {
+					if (e.code != 'EEXIST') throw e;
+				}
+
 				ret.files.forEach(function(file) {
 					var item = {
 						file: file.file,
@@ -238,9 +227,23 @@ router.use('/download', function (req, res, next) {
 						ext: path.extname(file.name).toLowerCase()
 					};
 					if (item.ext=='.torrent') {
-						fs.rename(item.file, '/data/torrent/' + item.name);
+						//fs.rename(item.file, '/data/torrent/' + item.name);
+						transmission.addFile(item.file, {'download-dir':downdir}, function(err, arg) {
+							if (err) {
+								//console.log(arg);
+								locals.alertmsg += util.inspect(arg);
+								return;
+							}
+							//console.log(arg);
+							try {
+								fs.unlinkSync(item.file);
+							} catch (e) {}
+						});
 					} else {
-						fs.rename(item.file, '/data/download/' + item.name);
+						if (!item.name) {
+							item.name = 'undefined';
+						}
+						fs.renameSync(item.file, downdir + '/' + item.name);
 					}
 					locals.results.push(item);
 				});
@@ -254,6 +257,8 @@ router.use('/download', function (req, res, next) {
 });
 
 router.use('/torrent', function (req, res, next) {
+	var transmission = app.get('transmission');
+
 	var alertmsg = '';
 	var error = {};
 	var summary = {};
@@ -301,6 +306,8 @@ router.use('/torrent-file', function (req, res, next) {
 });
 
 router.use('/torrent-pause-clear', function (req, res, next) {
+	var transmission = app.get('transmission');
+
 	var tasks = [];
 	var count = 0;
 
@@ -329,6 +336,8 @@ router.use('/torrent-pause-clear', function (req, res, next) {
 
 
 router.use('/torrent-del', function (req, res, next) {
+	var transmission = app.get('transmission');
+
 	if (req.query['id']) {
 		// 삭제
 		var deleteId = req.query['id'];
@@ -351,21 +360,21 @@ router.use('/torrent-del', function (req, res, next) {
 });
 
 router.get('/', function(req, res, next) {
+	var scheduler = app.get('scheduler');
+	var loader = app.get('engine_loader');
+
 	if (req.query['engine']) {
 		req.session['engine'] = req.query['engine'];
 	}
-	console.log(req.session['engine']);
-	var engine = _engine(req.session['engine']);
 
-	engines.sort(function(a, b) {
-		return a.ping - b.ping;
-	});
+	var engine = loader.get(req.session['engine']);
+	var engines = loader.all();
 
 	res.render('index', {
 		engines: engines,
 		engine: engine,
-		schedules: schedules,
+		schedules: scheduler.list(),
 	});
 });
 
-module.exports = router
+module.exports = router;

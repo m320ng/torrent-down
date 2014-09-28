@@ -47,13 +47,15 @@ module.exports = {
 			download_filter: function($link) {
 				//console.log(href);
 				var href = $link.attr('href');
+				var text = $link.text();
 				if (href && href.indexOf('module=file')!=-1 && /file_srl\=[0-9]+/.test(href)) {
 					href = href.replace(/&amp;/g,'&');
 					var filelink = href;
 					//console.log(matches);
 					//console.log(filelink);
 					return {
-						link: filelink
+						link: filelink,
+						name: text
 					};
 				}
 				return null;

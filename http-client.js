@@ -165,7 +165,10 @@ var HttpClient = function () {
 				}
 			}
 
-			var file = fs.createWriteStream(destfile);
+			var file = fs.createWriteStream(destfile, {
+				flags: 'w',
+				mode: 0777
+			});
 			res.pipe(file);
 			file.on('finish', function() {
 				console.log('file-finish');

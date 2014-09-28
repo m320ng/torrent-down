@@ -34,8 +34,8 @@ var SimpleEngine = module.exports = function(opt) {
 
 	this.search = function(type, keyword, page, callback) {
 		console.log('['+this.name+'] search');
-		var path = this.search_path({type:type,keyword:keyword,page:page});
 		var self = this;
+		var path = this.search_path({type:type,keyword:HttpClient.urlencode(keyword, self.charset),page:page});
 		navi.request({host:self.host, path:path, encoding:self.charset}, function(err, body) {
 			var $ = cheerio.load(body, {
 				decodeEntities: false
@@ -45,7 +45,7 @@ var SimpleEngine = module.exports = function(opt) {
 
 			var result = [];
 			$(self.listlink_match).each(function() {
-				var item = self.listlink_filter($(this), {type:type,keyword:HttpClient.urlencode(keyword, self.charset),page:page});
+				var item = self.listlink_filter($(this), {type:type,keyword:keyword,page:page});
 				if (item) {
 					item.value = item.link;
 					result.push(item);
