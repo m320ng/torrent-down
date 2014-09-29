@@ -3,26 +3,23 @@ var SimpleEngine = require('../simple-engine');
 module.exports = {
 	get: function() {
 		return new SimpleEngine({
-			name: 'tosarang',
-			host: 'www.tosarang.net',
+			name: 'watorrent',
+			host: 'watorrent.org',
 			typelist: {
-				'torrent_movie_kor': '한국영화',
-				'torrent_movie_eng': '외국영화',
-				'torrent_kortv_ent': '한국예능',
-				'torrent_kortv_social': '한국시사',
-				'torrent_kortv_drama': '한국드라마',
-				'torrent_engtv_ent': '외국예능',
-				'torrent_engtv_social': '외국시사',
-				'torrent_engtv_drama': '외국드라마',
-				'torrent_video_sports': '스포츠',
-				'torrent_video_ani': '애니메이션',
-				'torrent_music_kor': '한국음악',
-				'torrent_music_eng': '외국음악',
+				'torrent_movie': '영화',
+				'torrent_dom_tv': '국내TV',
+				'torrent_drama': '드라마',
+				'torrent_sports': '스포츠',
+				'torrent_docu': '다큐/시사',
+				'torrent_inter_tv': '해외TV',
+				'torrent_ani': '애니메이션',
+				'torrent_music': '음악',
+				'torrent_hd': '고화질',
 			},
 			mapping: {
-				'한국예능': 'torrent_kortv_ent',
-				'한국시사': 'torrent_kortv_social',
-				'한국드라마': 'torrent_kortv_drama',
+				'한국예능': 'torrent_dom_tv',
+				'한국시사': 'torrent_docu',
+				'한국드라마': 'torrent_drama',
 			},
 			search_path: function(opt) {
 				var path = '/bbs/board.php?bo_table={type}&sca=&sfl=wr_subject&stx={keyword}&sop=and&page={page}';

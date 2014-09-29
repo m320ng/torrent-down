@@ -16,6 +16,9 @@ module.exports = {
 				'torrent_ani': '애니',
 			},
 			mapping: {
+				'한국예능': 'all',
+				'한국시사': 'all',
+				'한국드라마': 'all',
 			},
 			search_path: function(opt) {
 				var path = '/bbs/cache.php?bo_table={type}&sca=&sfl=wr_subject&stx={keyword}&sop=and&page={page}';

@@ -16,6 +16,7 @@ module.exports = {
 			mapping: {
 				'한국예능': 'B24',
 				'한국시사': 'B25',
+				'한국드라마': 'B23',
 			},
 			search_path: function(opt) {
 				var path = '/bbs/board.php?bo_table={type}&sca=&sfl=wr_subject&stx={keyword}&sop=and&page={page}';
