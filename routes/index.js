@@ -263,6 +263,7 @@ router.use('/torrent', function (req, res, next) {
 	var error = {};
 	var summary = {};
 	var torrents = [];
+
 	transmission.get(function(err, result) {
 		if (err) {
 			console.log(err);

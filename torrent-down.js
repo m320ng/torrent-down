@@ -2,6 +2,7 @@ var express = require('express');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var expressSession = require('express-session');
+var memwatch = require('memwatch');
 
 var path = require('path');
 var fs = require('fs');
@@ -10,6 +11,12 @@ var async = require('async');
 
 global.torrent_path = '/data/torrent';
 global.download_path = '/data/down';
+
+// memory leak check
+memwatch.on('leak', function(info) {
+	console.error('memwatch-leak');
+	console.error(info);
+});
 
 // transmission
 var transmission = require('./transmission');
