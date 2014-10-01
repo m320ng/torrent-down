@@ -34,11 +34,15 @@ app.set('scheduler', scheduler);
 app.set('transmission', transmission);
 app.set('engine_loader', engine_loader);
 
+console.log(__dirname);
+
 var ECT = require('ect');
+//var ectRenderer = ECT({ watch: true, root: __dirname + '/views', ext : '.ect' });
 var ectRenderer = ECT({ watch: true, root: __dirname + '/views', ext : '.ect' });
 
 // view engine setup
 app.engine('ect', ectRenderer.render);
+app.set("views", __dirname + '/views');
 app.set("view engine", "ect");
 
 app.use(logger('dev'));
