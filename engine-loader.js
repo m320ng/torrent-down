@@ -4,10 +4,14 @@ var fs = require('fs');
 
 //load engines 
 var engines = [];
-var files = fs.readdirSync(path.join(__dirname, '/engines'));
-files.forEach(function(file) {
-	engines.push(require(path.join(__dirname,'/engines',file)).get());
-});
+function load_engines() {
+	console.log('load engines');
+	engines = [];
+	var files = fs.readdirSync(path.join(__dirname, '/engines'));
+	files.forEach(function(file) {
+		engines.push(require(path.join(__dirname,'/engines',file)).get());
+	});
+}
 
 /* auto verify
  ------------------------------------------------------------------------------------ */
@@ -33,11 +37,46 @@ function verify_engines(callback) {
 		if (callback) callback(err);
 	});
 }
-setInterval(function() {
-	verify_engines(function(err) {
-		console.log('auto verify');
-	});
-}, 60*60*1000);
+
+var auto_verify_timer = null;
+function auto_verify_engines(now) {
+	if (auto_verify_timer) {
+		clearTimeout(auto_verify_timer);
+		auto_verify_timer = null;
+	}
+	if (now) {
+		verify_engines(function(err) {
+			console.log('auto verify');
+			auto_verify_engines();
+		});
+		return;
+	}
+	auto_verify_timer = setTimeout(function() {
+		verify_engines(function(err) {
+			console.log('auto verify');
+			auto_verify_engines();
+		});
+	}, 60*60*1000);
+}
+
+// init
+console.log('engine-loader init');
+load_engines();
+auto_verify_engines();
+
+var watch_timer = null;
+fs.watch(__dirname+'/engines').on('change', function (event, filename) {
+	if (!watch_timer) {
+		watch_timer = setTimeout(function() { watch_timer = null }, 1000); 
+		console.log(event);
+		if (event == 'change') {
+			console.log('watch:' + filename + ' ' + event);
+			delete require.cache[path.join(__dirname,'engines/'+filename)];
+			load_engines();
+			auto_verify_engines(true);
+		}
+	}
+});
 
 module.exports = {
 	get: function(name) {

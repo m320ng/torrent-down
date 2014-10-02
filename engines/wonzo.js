@@ -4,7 +4,7 @@ module.exports = {
 	get: function() {
 		return new SimpleEngine({
 			name: 'wonzo',
-			host: 'www.won3.us',
+			host: 'www.wonzoh.us',
 			typelist: {
 				'torrent_movie': '영화',
 				'torrent_drama': '드라마',

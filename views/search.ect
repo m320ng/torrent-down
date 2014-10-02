@@ -2,9 +2,48 @@
 
 <script type="text/javascript">
 function next(page) {
-        var form = document.forms['search-form'];
-        form["page"].value = page;
-        form.submit();
+	var form = document.forms['search-form'];
+	form["page"].value = page;
+	form.submit();
+}
+function download(link, title) {
+	var filter = title;
+	filter = filter.replace(/\[[^\]]+\]/g, '');
+	//filter = filter.replace(/\([^\)]+\)/g, '');
+	filter = filter.replace(/「(.+)」/g, '($1)');
+	filter = filter.replace(/\(MX (.+)\)/ig, '');
+
+	filter = filter.replace(/(1080i|1080p|720p)(.+)$/ig, '');
+	filter = filter.replace(/(DVDRIP|HDRIP|BLUERAY|HDTV)(.+)$/ig, '');
+	filter = filter.replace(/(X264|H264)(.+)$/ig, '');
+
+	filter = filter.replace(/\.(mp4|avi|wmv|mkv)$/ig, '');
+
+	filter = filter.replace(/[._-]+/g, ' ');
+	filter = filter.replace(/[ ]+/g, ' ');
+
+	filter = filter.trim();
+	filter = filter.replace(/E([0-9]+) [0-9]{6,8}/g, 'E$1');
+	filter = filter.replace(/^[0-9]{6,8}/g, '');
+	filter = filter.replace(/[0-9]{6,8}$/g, '');
+	filter = filter.replace(/[0-9]+년[ ]?[0-9]+월[ ]?[0-9]+일/g, '');
+	filter = filter.trim();
+
+	$('#origin-title').val(title);
+	$('#filter-title').val(filter);
+	$('#myModal button.origin').off('click');
+	$('#myModal button.filter').off('click');
+	$('#myModal button.origin').on('click', function() {
+		location = '/download?engine=<%= @engine.name%>&value='+encodeURIComponent(link)+'&title='+encodeURIComponent($('#origin-title').val());
+		return false;
+	});
+	$('#myModal button.filter').on('click', function() {
+		location = '/download?engine=<%= @engine.name%>&value='+encodeURIComponent(link)+'&title='+encodeURIComponent($('#filter-title').val());
+		return false;
+	});
+
+	$('#myModal').modal({
+	})
 }
 </script>
 
@@ -28,11 +67,11 @@ function next(page) {
       <% for item in @result : %>
       <tr>
         <td>
-          <a href="/download?engine=<%= @engine.name%>&value=<%= encodeURIComponent(item.link)%>&title=<%= encodeURIComponent(item.title)%>"><%= item.title%></a>
+          <a href="javascript:download('<%= item.link%>', '<%= item.title%>');"><%= item.title%></a>
           <a href="<%- item.info%>" class="badge" target="_blank" style="background:#5cb85c;">INFO</a>
         </td>
         <td>
-          <a href="/download?engine=<%= @engine%>&value=<%= encodeURIComponent(item.link)%>&title=<%= encodeURIComponent(item.title)%>" class="btn btn-primary btn-xs" style="float:right;"><span class="glyphicon glyphicon-download"></span> Download</a>
+          <a href="/download?engine=<%= @engine.name%>&value=<%= encodeURIComponent(item.link)%>&title=<%= encodeURIComponent(item.title)%>" class="btn btn-primary btn-xs" style="float:right;"><span class="glyphicon glyphicon-download"></span> Download</a>
         </td>
       <% end %>
     <% else : %>
@@ -46,3 +85,36 @@ function next(page) {
 <a href="/" class="btn btn-default"><span class="glyphicon glyphicon-home"></span> 처음으로</a>
 <a href="javascript:next('<%- @page+1%>');" class="btn btn-default"><span class="glyphicon glyphicon-chevron-right"></span> 다음페이지</a>
 <a href="javascript:history.back();" class="btn btn-default"><span class="glyphicon glyphicon-eject"></span> 뒤로가기</a>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">다운로드</h4>
+      </div>
+      <div class="modal-body">
+	    <div class="form-group">
+		  <div class="input-group">
+            <input type="text" class="form-control" id="origin-title"/>
+		    <div class="input-group-btn">
+            <button type="button" class="btn btn-primary origin">Download</button>
+		    </div>
+		  </div>
+		</div>
+	    <div class="form-group">
+		  <div class="input-group">
+            <input type="text" class="form-control" id="filter-title"/>
+		    <div class="input-group-btn">
+            <button type="button" class="btn btn-primary filter">Download</button>
+		    </div>
+		  </div>
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

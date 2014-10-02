@@ -83,7 +83,7 @@ function processComplete() {
 			}
 			next();
 		}, function(err, result) {
-			console.log('transmission process-complete');
+			//console.log('transmission process-complete');
 			setTimeout(function() {
 				processComplete();
 			}, 15000);

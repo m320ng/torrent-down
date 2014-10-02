@@ -52,7 +52,7 @@ function downloadProcess(target) {
 							}
 							
 							if (ret.files) {
-								var downdir = global.download_path+'/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
+								var downdir = global.download_path+'/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
 								try {
 									fs.mkdirSync(downdir, 0777);
 									fs.chmodSync(downdir, 0777);
