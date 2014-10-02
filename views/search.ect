@@ -6,7 +6,22 @@ function next(page) {
 	form["page"].value = page;
 	form.submit();
 }
+function update_gallery(query) {
+	$('#gallery-images').html('');
+	$.get('/search-image', {query:query}, function(result) {
+		if (!result.success) {
+			$('#gallery-images').html(result.message);
+			return;
+		}
+		var html = [];
+		for (var i=0; i<result.items.length; i++) {
+			html.push('<a href="'+result.items[i].unescapedUrl+'" target="_blank"><img src="'+result.items[i].tbUrl+'"/></a>');
+		}
+		$('#gallery-images').html(html.join(''));
+	});
+}
 function download(link, title) {
+	title = title.replace(/[ ]+/g, ' ');
 	var filter = title;
 	filter = filter.replace(/\[[^\]]+\]/g, '');
 	//filter = filter.replace(/\([^\)]+\)/g, '');
@@ -29,16 +44,20 @@ function download(link, title) {
 	filter = filter.replace(/[0-9]+년[ ]?[0-9]+월[ ]?[0-9]+일/g, '');
 	filter = filter.trim();
 
+	update_gallery(filter);
+
 	$('#origin-title').val(title);
 	$('#filter-title').val(filter);
 	$('#myModal button.origin').off('click');
 	$('#myModal button.filter').off('click');
 	$('#myModal button.origin').on('click', function() {
-		location = '/download?engine=<%= @engine.name%>&value='+encodeURIComponent(link)+'&title='+encodeURIComponent($('#origin-title').val());
+		var group = $('#title-group').val();
+		location = '/download?engine=<%= @engine.name%>&value='+encodeURIComponent(link)+'&title='+encodeURIComponent($('#origin-title').val())+'&group='+encodeURIComponent(group);
 		return false;
 	});
 	$('#myModal button.filter').on('click', function() {
-		location = '/download?engine=<%= @engine.name%>&value='+encodeURIComponent(link)+'&title='+encodeURIComponent($('#filter-title').val());
+		var group = $('#title-group').val();
+		location = '/download?engine=<%= @engine.name%>&value='+encodeURIComponent(link)+'&title='+encodeURIComponent($('#filter-title').val())+'&group='+encodeURIComponent(group);
 		return false;
 	});
 
@@ -96,6 +115,14 @@ function download(link, title) {
       </div>
       <div class="modal-body">
 	    <div class="form-group">
+		<select id="title-group" class="form-control">
+		<option value="">분류없음</option>
+		<% for key of @group : %>
+		<option value="<%-key%>"><%-@group[key]%></option>
+		<% end %>
+		</select>
+		</div>
+	    <div class="form-group">
 		  <div class="input-group">
             <input type="text" class="form-control" id="origin-title"/>
 		    <div class="input-group-btn">
@@ -111,6 +138,9 @@ function download(link, title) {
 		    </div>
 		  </div>
 		</div>
+	    <div class="form-group">
+		  <div id="gallery-images" style="width:100%; height:147px; overflow:auto;"></div>
+		</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -118,3 +148,9 @@ function download(link, title) {
     </div>
   </div>
 </div>
+
+<script type="text/javascript">
+$('#filter-title').on('blur', function() {
+	update_gallery($(this).val());
+});
+</script>

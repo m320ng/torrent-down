@@ -22,7 +22,7 @@ function processComplete() {
 	//console.log(transmission.methods.torrents.fields);
 	transmission.get(function(err, result) {
 		if (err) {
-			console.err(err);
+			console.error(err);
 			setTimeout(function() {
 				processComplete();
 			}, 15000);

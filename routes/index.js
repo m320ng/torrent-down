@@ -1,8 +1,11 @@
 var util = require('util');
 var fs = require('fs');
+var http = require('http');
 var path = require('path')
 var async = require('async')
+var mkdirp = require('mkdirp')
 var express = require('express');
+var group = require('../group');
 var router = express.Router();
 
 function getExtension(filename) {
@@ -39,6 +42,7 @@ router.get('/search', function(req, res, next) {
 		page: page,
 		type: type,
 		keyword: keyword,
+		group: group,
 	};
 
 	if (type) {
@@ -186,6 +190,7 @@ router.use('/download', function (req, res, next) {
 	var engine = loader.get(req.query['engine']||req.session['engine']);
 	var value = req.query['value'];
 	var title = req.query['title'];
+	var group = req.query['group'];
 	//console.log(value);
 	//console.log(title);
 
@@ -211,45 +216,54 @@ router.use('/download', function (req, res, next) {
 			}
 			
 			if (ret.files) {
-				var downdir = global.download_path+'/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
+				var downdir = global.download_path;
+				if (group) {
+					downdir += '/'+group.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
+				}
+				downdir += '/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
 				//console.log(downdir);
 				try {
-					fs.mkdirSync(downdir, 0777);
-					fs.chmodSync(downdir, 0777);
+					mkdirp(downdir, {mode:0777}, function(err) {
+						if (err) {
+							console.error(err);
+							locals.alertmsg += util.inspect(err);
+							res.render('download', locals);
+							return;
+						}
+						fs.chmodSync(downdir, 0777);
+						ret.files.forEach(function(file) {
+							var item = {
+								file: file.file,
+								name: file.name,
+								ext: path.extname(file.name).toLowerCase()
+							};
+							if (item.ext=='.torrent') {
+								//fs.rename(item.file, '/data/torrent/' + item.name);
+								transmission.addFile(item.file, {'download-dir':downdir}, function(err, arg) {
+									if (err) {
+										//console.log(arg);
+										locals.alertmsg += util.inspect(arg);
+										return;
+									}
+									//console.log(arg);
+									try {
+										fs.unlinkSync(item.file);
+									} catch (e) {}
+								});
+							} else {
+								if (!item.name) {
+									item.name = 'undefined';
+								}
+								fs.renameSync(item.file, downdir + '/' + item.name);
+							}
+							locals.results.push(item);
+						});
+						res.render('download', locals);
+					});
 				} catch(e) {
 					if (e.code != 'EEXIST') throw e;
 				}
-
-				ret.files.forEach(function(file) {
-					var item = {
-						file: file.file,
-						name: file.name,
-						ext: path.extname(file.name).toLowerCase()
-					};
-					if (item.ext=='.torrent') {
-						//fs.rename(item.file, '/data/torrent/' + item.name);
-						transmission.addFile(item.file, {'download-dir':downdir}, function(err, arg) {
-							if (err) {
-								//console.log(arg);
-								locals.alertmsg += util.inspect(arg);
-								return;
-							}
-							//console.log(arg);
-							try {
-								fs.unlinkSync(item.file);
-							} catch (e) {}
-						});
-					} else {
-						if (!item.name) {
-							item.name = 'undefined';
-						}
-						fs.renameSync(item.file, downdir + '/' + item.name);
-					}
-					locals.results.push(item);
-				});
 			}
-
-			res.render('download', locals);
 		});
 	} else {
 		res.render('download', locals);
@@ -359,6 +373,60 @@ router.use('/torrent-del', function (req, res, next) {
 	res.writeHead(302, {Location:'/torrent'});
 	res.end();
 });
+
+router.use('/search-image', function (req, res) {
+	var query = req.query['query'];
+	var start = req.query['start'];
+	if (!start) start = 0;
+	var url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=' + encodeURIComponent(query) + '&start=' + start;
+
+	(function(callback) {
+		var request = http.request(url, function(response) {
+			response.setEncoding('utf8');
+			var data = '';
+			response.on('data', function (chunk) {
+				data += chunk;
+			});
+			response.on('end', function() {
+				callback(false, data);
+			});
+		});
+		request.on('error', function(e) {
+			console.log('problem with request: ' + e.message);
+			console.log(e);
+			callback(-1, 'problem with request: ' + e.message);
+		});
+		request.on('socket', function (socket) {
+			socket.setTimeout(15*1000);  
+			socket.on('timeout', function() {
+				request.abort();
+				callback(-1, 'socket timeout');
+			});
+		});
+		request.end();
+	})(function(err, body) {
+		if (err) {
+			res.json({
+				success:false,
+				message:body
+			});
+			return;
+		}
+		try {
+			var result = JSON.parse(body);
+			var items = result.responseData.results;
+			res.json({
+				success:true,
+				items:items
+			});
+		} catch (e) {
+			console.error(e);
+			res.json({sucess:false,message:body});
+		}
+	});
+
+});
+
 
 router.get('/', function(req, res, next) {
 	var scheduler = app.get('scheduler');
