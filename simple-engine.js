@@ -1,5 +1,6 @@
 var cheerio = require("cheerio");
 var async = require("async");
+var uuid = require('node-uuid');
 var HttpClient = require('./http-client.js');
 
 var SimpleEngine = module.exports = function(opt) {
@@ -76,7 +77,8 @@ console.log('>>'+value);
 				var file = self.download_filter($(this));
 				if (file && file.link) {
 					var noname = dirname+(index>0?'('+index+')':'');
-					var time = +new Date();
+					var time = uuid.v1();
+
 					tasks.push(function(next) {
 						navi.download(self.host, file.link, __dirname+'/tmp/'+time, self.charset, function(err, ret) {
 							if (err) {

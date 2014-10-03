@@ -203,71 +203,91 @@ router.use('/download', function (req, res, next) {
 		results: [],
 	};
 
-	if (value) {
-		engine.download(value, title, function(err, ret) {
-			//console.log('complete');
-
-			if (err) {
-				locals.alertmsg = ret;
-			}
-
-			if (ret.meesage) {
-				locals.alertmsg += ret.meesage;
-			}
-			
-			if (ret.files) {
-				var downdir = global.download_path;
-				if (group) {
-					downdir += '/'+group.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
-				}
-				downdir += '/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
-				//console.log(downdir);
-				try {
-					mkdirp(downdir, {mode:0777}, function(err) {
-						if (err) {
-							console.error(err);
-							locals.alertmsg += util.inspect(err);
-							res.render('download', locals);
-							return;
-						}
-						fs.chmodSync(downdir, 0777);
-						ret.files.forEach(function(file) {
-							var item = {
-								file: file.file,
-								name: file.name,
-								ext: path.extname(file.name).toLowerCase()
-							};
-							if (item.ext=='.torrent') {
-								//fs.rename(item.file, '/data/torrent/' + item.name);
-								transmission.addFile(item.file, {'download-dir':downdir}, function(err, arg) {
-									if (err) {
-										//console.log(arg);
-										locals.alertmsg += util.inspect(arg);
-										return;
-									}
-									//console.log(arg);
-									try {
-										fs.unlinkSync(item.file);
-									} catch (e) {}
-								});
-							} else {
-								if (!item.name) {
-									item.name = 'undefined';
-								}
-								fs.renameSync(item.file, downdir + '/' + item.name);
-							}
-							locals.results.push(item);
-						});
-						res.render('download', locals);
-					});
-				} catch(e) {
-					if (e.code != 'EEXIST') throw e;
-				}
-			}
-		});
-	} else {
-		res.render('download', locals);
+	var groupdir = global.download_path;
+	if (group) {
+		groupdir += '/'+group.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
 	}
+	var downdir = groupdir+'/'+title.replace(/[^가-힣a-zA-Z0-9. \[\]\(\)\-_]/g, '').replace(/[.]+$/g, '').replace(/[ ]+/g, ' ').trim();
+
+	function process(files) {
+		async.eachSeries(files, function(file, next) {
+			var item = {
+				file: file.file,
+				name: file.name,
+				ext: path.extname(file.name).toLowerCase()
+			};
+			if (!fs.existsSync(item.file)) {
+				locals.alertmsg += '<strong>'+item.name+'</strong>'+item.file+' not exists <br/>';
+				return next();
+			}
+			if (item.ext=='.torrent') {
+				transmission.addFile(item.file, {'download-dir':downdir}, function(err, arg) {
+					try {
+						console.log('#delete#'+item.file);
+						fs.unlinkSync(item.file);
+					} catch (e) {
+						console.log(e.message);
+					}
+
+					if (err) {
+						console.log(err);
+						locals.alertmsg += '<strong>'+item.name+'</strong> '+err.result+'<br/>';
+						return next();
+					}
+
+					locals.results.push(item);
+					next();
+				});
+			} else {
+				if (!item.name) {
+					item.name = 'undefined';
+				}
+				fs.renameSync(item.file, downdir + '/' + item.name);
+				locals.results.push(item);
+				next();
+			}
+		}, function() {
+			res.render('download', locals);
+		});
+	}
+
+	if (!value) {
+		res.render('download', locals);
+		return;
+	}
+
+	engine.download(value, title, function(err, ret) {
+		console.log('complete');
+
+		if (err) {
+			locals.alertmsg = ret;
+		}
+
+		if (ret.meesage) {
+			locals.alertmsg += ret.meesage;
+		}
+		
+		if (ret.files) {
+			console.log(ret.files);
+			try {
+				mkdirp(downdir, 0777, function(err) {
+					if (err) {
+						console.error(err);
+						locals.alertmsg += util.inspect(err);
+						res.render('download', locals);
+						return;
+					}
+					fs.chmodSync(groupdir, 0777);
+					fs.chmodSync(downdir, 0777);
+					process(ret.files);
+				});
+			} catch(e) {
+				if (e.code != 'EEXIST') throw e;
+				console.log(e.message);
+				res.render('download', locals);
+			}
+		}
+	});
 });
 
 router.use('/torrent', function (req, res, next) {

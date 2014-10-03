@@ -26,7 +26,7 @@ function download(link, title) {
 	filter = filter.replace(/\[[^\]]+\]/g, '');
 	//filter = filter.replace(/\([^\)]+\)/g, '');
 	filter = filter.replace(/「(.+)」/g, '($1)');
-	filter = filter.replace(/\(MX (.+)\)/ig, '');
+	filter = filter.replace(/\([A-Z-]+ [0-9]{3,4}x[0-9]{3,4} (.+)\)/ig, '');
 
 	filter = filter.replace(/(1080i|1080p|720p)(.+)$/ig, '');
 	filter = filter.replace(/(DVDRIP|HDRIP|BLUERAY|HDTV)(.+)$/ig, '');
