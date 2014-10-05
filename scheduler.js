@@ -69,8 +69,8 @@ function downloadProcess(target) {
 									if (item.ext=='.torrent') {
 										transmission.addFile(item.file, {'download-dir':downdir}, function(err, arg) {
 											if (err) {
-												//console.log(arg);
-												locals.alertmsg += util.inspect(arg);
+												console.log(arg);
+												//locals.alertmsg += util.inspect(arg);
 												return;
 											}
 											//console.log(arg);

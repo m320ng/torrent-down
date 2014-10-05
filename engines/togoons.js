@@ -15,6 +15,8 @@ module.exports = {
 				'torrent_ani': '애니메이션',
 				'torrent_song': '음악',
 				'torrent_blueray': '고화질',
+				'torrent_etc': '기타',
+				'youtube': '영상',
 			},
 			mapping: {
 				'한국예능': 'torrent_variety',

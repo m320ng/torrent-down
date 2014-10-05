@@ -13,6 +13,8 @@ module.exports = {
 				'fortv': '외국TV',
 				'ani': '애니메이션',
 				'music': '음악',
+				'book': '도서',
+				'smi': '자막',
 			},
 			mapping: {
 				'한국예능': 'kortv',

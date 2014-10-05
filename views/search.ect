@@ -20,6 +20,16 @@ function update_gallery(query) {
 		$('#gallery-images').html(html.join(''));
 	});
 }
+function update_search_daum(query) {
+	//$('#myModal .search-daum').attr('href', 'http://movie.daum.net/search.do?q='+encodeURIComponent(query));
+	$('#myModal .search-daum').attr('href', 'http://search.daum.net/search?w=tot&DA=YZR&t__nil_searchbox=btn&sug=&o=&q='+encodeURIComponent(query));
+}
+function update_search_naver(query) {
+	$('#myModal .search-naver').attr('href', 'http://search.naver.com/search.naver?where=nexearch&query='+encodeURIComponent(query));
+}
+function update_search_goolge(query) {
+	$('#myModal .search-google').attr('href', 'http://www.google.co.kr/#newwindow=1&q='+encodeURIComponent(query));
+}
 function download(link, title) {
 	title = title.replace(/[ ]+/g, ' ');
 	var filter = title;
@@ -45,6 +55,9 @@ function download(link, title) {
 	filter = filter.trim();
 
 	update_gallery(filter);
+	update_search_daum(filter);
+	update_search_naver(filter);
+	update_search_goolge(filter);
 
 	$('#origin-title').val(title);
 	$('#filter-title').val(filter);
@@ -138,6 +151,11 @@ function download(link, title) {
 		    </div>
 		  </div>
 		</div>
+	    <div class="btn-group">
+		  <a href="http://movie.naver.com/movie/search/result.nhn?query=" class="btn btn-xs btn-info search-naver" target="_blank">Naver</a>
+		  <a href="http://movie.daum.net/search.do?q=" class="btn btn-xs btn-info search-daum" target="_blank">Daum</a>
+		  <a href="http://www.google.co.kr/#newwindow=1&q=" class="btn btn-xs btn-info search-google" target="_blank">Goolge</a>
+		</div>
 	    <div class="form-group">
 		  <div id="gallery-images" style="width:100%; height:147px; overflow:auto;"></div>
 		</div>
@@ -152,5 +170,8 @@ function download(link, title) {
 <script type="text/javascript">
 $('#filter-title').on('blur', function() {
 	update_gallery($(this).val());
+	update_search_daum($(this).val());
+	update_search_naver($(this).val());
+	update_search_goolge($(this).val());
 });
 </script>

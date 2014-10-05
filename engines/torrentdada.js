@@ -6,11 +6,11 @@ module.exports = {
 			name: 'torrentdada',
 			host: 'www.torrentdada.com',
 			typelist: {
+				'Movie_01': '해외영화',
+				'Movie_02': '국내영화',
 				'TV_Variety': '예능',
 				'TV_Docu': '시사교양',
 				'TV_Drama': '드라마',
-				'Movie_01': '해외영화',
-				'Movie_02': '국내영화',
 				'MP3': '음악',
 				'Anime': '애니',
 			},

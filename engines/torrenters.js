@@ -6,13 +6,14 @@ module.exports = {
 			name: 'torrenters',
 			host: 'torrenters.com',
 			typelist: {
-				'tr_pbtv': 'TV방송',
-				'tr_ftv': '외국TV',
 				'tr_kmovie': '국내영화',
 				'tr_fmovie': '외국영화',
+				'tr_pbtv': 'TV방송',
+				'tr_ftv': '외국TV',
 				'tr_ani': '애니',
 				'tr_video': '영상',
 				'tr_sports': '스포츠',
+				'tr_jamak': '자막',
 			},
 			mapping: {
 				'한국예능': 'tr_pbtv',

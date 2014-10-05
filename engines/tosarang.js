@@ -18,6 +18,8 @@ module.exports = {
 				'torrent_video_ani': '애니메이션',
 				'torrent_music_kor': '한국음악',
 				'torrent_music_eng': '외국음악',
+				'torrent_lecture': '강좌',
+				'torrent_book': '도서',
 			},
 			mapping: {
 				'한국예능': 'torrent_kortv_ent',

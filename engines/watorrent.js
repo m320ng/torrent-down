@@ -15,6 +15,7 @@ module.exports = {
 				'torrent_ani': '애니메이션',
 				'torrent_music': '음악',
 				'torrent_hd': '고화질',
+				'torrent_book': '만화/소설',
 			},
 			mapping: {
 				'한국예능': 'torrent_dom_tv',

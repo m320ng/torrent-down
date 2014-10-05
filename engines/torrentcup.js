@@ -14,6 +14,8 @@ module.exports = {
 				'torrent_mid': '미드',
 				'torrent_sports': '스포츠',
 				'torrent_ani': '애니',
+				'torrent_book': '도서',
+				'torrent_song': '음악',
 			},
 			mapping: {
 				'한국예능': 'all',
